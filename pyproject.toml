@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tracewright"
-version = "0.0.2"
+version = "0.0.3"
 description = "Replay-driven eval for f3dx and pydantic-ai traces. Take a JSONL trace, swap the model, get a per-case diff."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -41,11 +41,15 @@ packages = ["src/tracewright"]
 include = ["src", "tests", "README.md", "LICENSE", "pyproject.toml"]
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# inline CSS / HTML template strings naturally exceed line length
+"src/tracewright/_report.py" = ["E501"]
 
 [tool.mypy]
 strict = true

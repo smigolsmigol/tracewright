@@ -41,8 +41,12 @@ engine = ReplayEngine(
 
 ```bash
 tracewright replay traces.jsonl --candidate myapp.replay:my_candidate \
-    --candidate-model claude-haiku-4 -v
+    --candidate-model claude-haiku-4 \
+    --report html=report.html \
+    --budget "pass_rate=>=1.0,latency_p95=+10%" -v
 ```
+
+Drop the resulting `report.html` into a CI artifact upload step. The single self-contained file (no JS, no external CSS) renders a side-by-side diff per case + scorer rollups + p50/p95 latency baseline-vs-candidate. `--budget` is comma-separated `metric=op-value`; supported metrics are `latency_p50`, `latency_p95`, `latency_mean`, `score`, `pass_rate`. Operators `+%` / `-%` compare candidate vs baseline; `>=`, `<=`, `==` compare absolute. Exit 2 on any violation.
 
 ## Why
 
@@ -60,7 +64,10 @@ tracewright/
     _pydantic_ai.py   parse_pydantic_ai_jsonl for OTel logfire spans
     _score.py         Scorer Protocol + ExactMatchScorer + PydanticEquivalenceScorer
     _replay.py        ReplayEngine (parse -> case -> candidate_fn -> score)
+    _report.py        Report aggregation + LatencyStats + self-contained HTML render
+    _budget.py        --budget parser + enforcer (latency_p50/p95/mean, score, pass_rate)
     cli.py            tracewright replay <trace.jsonl> --candidate <import:fn>
+                      [--report html=PATH | json=PATH] [--budget SPEC]
   tests/
     fixtures/enriched_trace.jsonl       4-row f3dx-shaped fixture
     fixtures/pydantic_ai_spans.jsonl    3-row pydantic-ai/logfire-shaped fixture
@@ -90,9 +97,7 @@ pyproject.toml        hatch build, optional [pydantic-ai] extra
 
 - Embedding-cosine scorer
 - LLM-judge scorer
-- HTML side-by-side report
-- Cost + latency rollups
-- CI fail-the-build mode (`--budget tokens=+5%,latency_p95=+10%`)
+- Cost rollups (tokens=+5% budget metric — needs token counts in the trace row, queued behind the f3dx-side enrichment)
 - Tool-call divergence reporting
 
 ## License
