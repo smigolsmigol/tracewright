@@ -1,42 +1,51 @@
 # tracewright
 
-Replay-driven eval for f3dx and pydantic-ai traces. Take a JSONL trace, hold the input distribution fixed, swap the model or prompt, get a per-case diff. The artifact your runtime already emits becomes the regression suite.
+Trace-replay adapter for [`pydantic-evals`](https://ai.pydantic.dev/evals/). Take a JSONL trace, get a `Dataset` you can run any pydantic-evals evaluator against (`LLMJudge`, `EqualsExpected`, custom embedding-cosine — pydantic-evals owns the eval shape). The artifact your runtime already emits becomes the regression suite.
 
 ```bash
 pip install tracewright
 ```
 
 ```python
-from tracewright import ReplayEngine, parse_jsonl
-from tracewright._parse import filter_replayable
+# pip install tracewright[pydantic-evals]
+import asyncio
+from pydantic_evals.evaluators import EqualsExpected, LLMJudge
+from tracewright import to_pydantic_evals_dataset
 
-def my_candidate(case):
-    # case.prompt, case.system_prompt, case.baseline_output available
-    return run_my_agent(case.system_prompt, case.prompt)
+dataset = to_pydantic_evals_dataset(
+    "traces.jsonl",
+    name="prod-regression-cw43",
+    evaluators=(EqualsExpected(), LLMJudge(rubric="answer is factually correct")),
+)
+
+async def my_candidate(prompt: str) -> str:
+    return await run_my_agent(prompt)
+
+report = asyncio.run(dataset.evaluate(my_candidate))
+report.print()  # markdown summary, per-case pass/fail, scorer rollups
+```
+
+Same path reads pydantic-ai's native logfire-shaped JSONL spans:
+
+```python
+dataset = to_pydantic_evals_dataset(
+    "logfire_export.jsonl",
+    pydantic_ai_logfire=True,
+    evaluators=(LLMJudge(rubric="answer is factually correct"),),
+)
+```
+
+Lightweight in-process scorers (no pydantic-evals dep) still ship for users who prefer them:
+
+```python
+from tracewright import ReplayEngine, parse_jsonl, ExactMatchScorer, PydanticEquivalenceScorer
+from tracewright._parse import filter_replayable
 
 rows = filter_replayable(parse_jsonl("traces.jsonl"))
 engine = ReplayEngine(candidate_fn=my_candidate, candidate_model="claude-haiku-4")
 for result in engine.replay_many(rows):
     if not result.all_passed:
         print(f"divergence: {result.case.prompt[:60]} -> {result.candidate_output[:60]}")
-```
-
-Read pydantic-ai logfire-shaped traces with the same engine:
-
-```python
-from tracewright import ReplayEngine, parse_pydantic_ai_jsonl, PydanticEquivalenceScorer
-from pydantic import BaseModel
-
-class Answer(BaseModel):
-    intent: str
-    confidence: float
-
-rows = parse_pydantic_ai_jsonl("logfire_export.jsonl")
-engine = ReplayEngine(
-    candidate_fn=my_candidate,
-    candidate_model="claude-haiku-4",
-    scorers=[PydanticEquivalenceScorer(Answer)],   # validate both sides + compare
-)
 ```
 
 ```bash
@@ -50,9 +59,9 @@ Drop the resulting `report.html` into a CI artifact upload step. The single self
 
 ## Why
 
-Agent evals are run-once snapshots today (Liu et al. 2024 "AgentBench" arXiv:2308.03688; Yang et al. 2024 "SWE-bench" arXiv:2310.06770). There's no standard way to hold the input distribution fixed and swap the model. Trivedi et al. 2024 ("Toolformer revisited" arXiv:2403.04746) names trace-replay as a missing primitive. The OpenTelemetry GenAI semconv working group defines spans but no replay tooling.
+Agent evals are run-once snapshots today (Liu et al. 2024 "AgentBench" arXiv:2308.03688; Yang et al. 2024 "SWE-bench" arXiv:2310.06770). There's no standard way to hold the input distribution fixed and swap the model. Trivedi et al. 2024 ("Toolformer revisited" arXiv:2403.04746) names trace-replay as a missing primitive.
 
-f3dx is the only Rust runtime emitting Logfire-shaped JSONL natively, and pydantic-ai with logfire enabled writes the same gen_ai.* span shape. Tracewright is the regression-suite layer that converts trace volume into a feedback loop.
+`pydantic-evals` already owns the eval-evaluator-report shape — built-in `LLMJudge`, `EqualsExpected`, `Contains`, `IsInstance`, `MaxDuration`, `Python`, the `Evaluator` Protocol for custom scorers, async retries, markdown reports. Tracewright deliberately does **not** reimplement any of that. It's a 50-line bridge: JSONL traces in, `pydantic_evals.Dataset` out. f3dx is the only Rust runtime emitting Logfire-shaped JSONL natively, and pydantic-ai with logfire enabled writes the same `gen_ai.*` span shape — both feed cleanly through this adapter.
 
 ## Architecture
 
@@ -64,6 +73,7 @@ tracewright/
     _pydantic_ai.py   parse_pydantic_ai_jsonl for OTel logfire spans
     _score.py         Scorer Protocol + ExactMatchScorer + PydanticEquivalenceScorer
     _replay.py        ReplayEngine (parse -> case -> candidate_fn -> score)
+    _pydantic_evals.py to_pydantic_evals_dataset adapter (the canonical path)
     _report.py        Report aggregation + LatencyStats + self-contained HTML render
     _budget.py        --budget parser + enforcer (latency_p50/p95/mean, score, pass_rate)
     cli.py            tracewright replay <trace.jsonl> --candidate <import:fn>
@@ -95,10 +105,10 @@ pyproject.toml        hatch build, optional [pydantic-ai] extra
 
 ## What's not here yet
 
-- Embedding-cosine scorer
-- LLM-judge scorer
-- Cost rollups (tokens=+5% budget metric — needs token counts in the trace row, queued behind the f3dx-side enrichment)
 - Tool-call divergence reporting
+- Direct ingestion of pydantic-ai `Agent.iter()` runs (today: post-run logfire JSONL only)
+
+For embedding-cosine, LLM-judge, semantic-similarity, or any custom scoring: write a `pydantic_evals.evaluators.Evaluator` subclass and pass it via the `evaluators=` kwarg. Pydantic-evals owns that surface; tracewright deliberately doesn't compete with it.
 
 ## License
 

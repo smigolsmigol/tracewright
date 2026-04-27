@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tracewright"
-version = "0.0.4"
+version = "0.0.5"
 description = "Replay-driven eval for f3dx and pydantic-ai traces. Take a JSONL trace, swap the model, get a per-case diff."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -24,6 +24,7 @@ dependencies = [
 
 [project.optional-dependencies]
 pydantic-ai = ["pydantic-ai>=1.87"]
+pydantic-evals = ["pydantic-evals>=1.87"]
 dev = [
     "pytest>=8.0",
     "pydantic-ai>=1.87",

@@ -37,5 +37,17 @@ __all__ = [
     "parse_budgets",
     "parse_jsonl",
     "parse_pydantic_ai_jsonl",
+    "to_pydantic_evals_dataset",
 ]
-__version__ = "0.0.4"
+__version__ = "0.0.5"
+
+
+def to_pydantic_evals_dataset(*args: object, **kwargs: object) -> object:
+    """Lazy import of the pydantic-evals adapter.
+
+    Local import keeps `import tracewright` cheap when the optional
+    [pydantic-evals] extra isn't installed.
+    """
+    from tracewright._pydantic_evals import to_pydantic_evals_dataset as _impl
+
+    return _impl(*args, **kwargs)  # type: ignore[arg-type]
