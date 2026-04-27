@@ -14,8 +14,8 @@ from __future__ import annotations
 import argparse
 import importlib
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from tracewright._models import ReplayCase
 from tracewright._parse import filter_replayable, parse_jsonl

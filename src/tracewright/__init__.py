@@ -8,7 +8,7 @@ emit becomes the regression suite.
 from tracewright._models import ReplayCase, ReplayResult, TraceRow
 from tracewright._parse import parse_jsonl
 from tracewright._replay import ReplayEngine
-from tracewright._score import ExactMatchScorer, ScoreResult, Scorer
+from tracewright._score import ExactMatchScorer, Scorer, ScoreResult
 
 __all__ = [
     "ExactMatchScorer",

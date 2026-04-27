@@ -11,6 +11,8 @@ from typing import Protocol, runtime_checkable
 
 from tracewright._models import ScoreResult
 
+__all__ = ["ExactMatchScorer", "ScoreResult", "Scorer"]
+
 
 @runtime_checkable
 class Scorer(Protocol):
