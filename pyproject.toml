@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tracewright"
-version = "0.0.3"
+version = "0.0.4"
 description = "Replay-driven eval for f3dx and pydantic-ai traces. Take a JSONL trace, swap the model, get a per-case diff."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [
-    { name = "Federico Coccoli", email = "fed1@f3d1.dev" },
+    { name = "Federico Benini", email = "smigolsmigol@protonmail.com" },
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
