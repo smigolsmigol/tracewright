@@ -55,6 +55,19 @@ class ScorerSummary:
 
 
 @dataclass
+class TokenStats:
+    """Aggregate token usage across all replay cases on one side."""
+
+    n: int
+    input_tokens: int
+    output_tokens: int
+
+    @property
+    def total_tokens(self) -> int:
+        return self.input_tokens + self.output_tokens
+
+
+@dataclass
 class Report:
     """The post-replay artifact: results, rollups, summary stats."""
 
@@ -62,6 +75,7 @@ class Report:
     candidate_model: str
     baseline_latency: LatencyStats = field(default_factory=lambda: LatencyStats(0, 0, 0, 0))
     candidate_latency: LatencyStats = field(default_factory=lambda: LatencyStats(0, 0, 0, 0))
+    baseline_tokens: TokenStats = field(default_factory=lambda: TokenStats(0, 0, 0))
     scorer_summaries: list[ScorerSummary] = field(default_factory=list)
 
     @classmethod
@@ -73,6 +87,9 @@ class Report:
             r.case.trace_row.duration_ms for r in results_list if r.case.trace_row.duration_ms
         ]
         candidate_samples = [r.duration_ms for r in results_list]
+
+        baseline_tokens_in = sum(r.case.trace_row.input_tokens for r in results_list)
+        baseline_tokens_out = sum(r.case.trace_row.output_tokens for r in results_list)
 
         scorer_names: list[str] = []
         scorer_buckets: dict[str, list[bool]] = {}
@@ -101,6 +118,11 @@ class Report:
             candidate_model=candidate_model,
             baseline_latency=LatencyStats.from_samples(baseline_samples),
             candidate_latency=LatencyStats.from_samples(candidate_samples),
+            baseline_tokens=TokenStats(
+                n=len(results_list),
+                input_tokens=baseline_tokens_in,
+                output_tokens=baseline_tokens_out,
+            ),
             scorer_summaries=summaries,
         )
 
@@ -146,6 +168,11 @@ class Report:
                 "mean_ms": self.candidate_latency.mean_ms,
             },
             "latency_p95_delta_pct": self.latency_p95_delta_pct,
+            "baseline_tokens": {
+                "input": self.baseline_tokens.input_tokens,
+                "output": self.baseline_tokens.output_tokens,
+                "total": self.baseline_tokens.total_tokens,
+            },
             "scorers": [
                 {
                     "name": s.name,

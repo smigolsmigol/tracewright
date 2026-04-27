@@ -48,6 +48,12 @@ class TraceRow(BaseModel):
     messages: list[Message] | None = None
     model: str | None = None
 
+    # Cost rollup inputs. f3dx-rt writes these unconditionally as of v0.0.8;
+    # absent or zero on older traces. Used by Report.cost_delta_pct + the
+    # tokens_in/tokens_out budget metrics.
+    input_tokens: int = 0
+    output_tokens: int = 0
+
 
 class ReplayCase(BaseModel):
     """One case to replay: prompt + system + tool calls in original order, plus the

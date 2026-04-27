@@ -117,6 +117,16 @@ def _read_metric(report: Report, metric: str) -> float | None:
         return sum(s.mean_score for s in report.scorer_summaries) / len(report.scorer_summaries)
     if metric == "pass_rate":
         return report.all_passed / report.total_cases if report.total_cases else 0.0
+    # Token-cost metrics. Today they read the BASELINE token totals from the
+    # f3dx trace rows. Once tracewright runs candidates that produce real
+    # token counts, the relative ops will compare candidate vs baseline; for
+    # now absolute >=/<=/== are the useful operators.
+    if metric == "tokens_in":
+        return float(report.baseline_tokens.input_tokens)
+    if metric == "tokens_out":
+        return float(report.baseline_tokens.output_tokens)
+    if metric == "tokens_total":
+        return float(report.baseline_tokens.total_tokens)
     return None
 
 

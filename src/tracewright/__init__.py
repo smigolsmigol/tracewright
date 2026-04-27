@@ -15,7 +15,7 @@ from tracewright._models import ReplayCase, ReplayResult, TraceRow
 from tracewright._parse import parse_jsonl
 from tracewright._pydantic_ai import parse_pydantic_ai_jsonl
 from tracewright._replay import ReplayEngine
-from tracewright._report import LatencyStats, Report, ScorerSummary
+from tracewright._report import LatencyStats, Report, ScorerSummary, TokenStats
 from tracewright._score import ExactMatchScorer, PydanticEquivalenceScorer, Scorer, ScoreResult
 
 __all__ = [
@@ -31,10 +31,11 @@ __all__ = [
     "ScoreResult",
     "Scorer",
     "ScorerSummary",
+    "TokenStats",
     "TraceRow",
     "enforce_budgets",
     "parse_budgets",
     "parse_jsonl",
     "parse_pydantic_ai_jsonl",
 ]
-__version__ = "0.0.3"
+__version__ = "0.0.4"
