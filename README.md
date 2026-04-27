@@ -55,26 +55,35 @@ f3dx is the only Rust runtime emitting Logfire-shaped JSONL natively, and pydant
 ```
 tracewright/
   src/tracewright/
-    _models.py      TraceRow, ReplayCase, ReplayResult, ScoreResult, Message
-    _parse.py       parse_jsonl(), filter_replayable()
-    _score.py       Scorer Protocol, ExactMatchScorer
-    _replay.py      ReplayEngine (parse -> case -> candidate_fn -> score)
-    cli.py          tracewright replay <trace.jsonl> --candidate <import:fn>
+    _models.py        TraceRow, Message, ReplayCase, ReplayResult, ScoreResult
+    _parse.py         parse_jsonl + filter_replayable for f3dx-shaped rows
+    _pydantic_ai.py   parse_pydantic_ai_jsonl for OTel logfire spans
+    _score.py         Scorer Protocol + ExactMatchScorer + PydanticEquivalenceScorer
+    _replay.py        ReplayEngine (parse -> case -> candidate_fn -> score)
+    cli.py            tracewright replay <trace.jsonl> --candidate <import:fn>
   tests/
-    fixtures/enriched_trace.jsonl    sample 4-row trace
-    test_replay.py                    end-to-end engine + parser tests
+    fixtures/enriched_trace.jsonl       4-row f3dx-shaped fixture
+    fixtures/pydantic_ai_spans.jsonl    3-row pydantic-ai/logfire-shaped fixture
+    test_replay.py                       engine + parser core
+    test_pydantic_ai_adapter.py          logfire span parser tests
+    test_pydantic_equivalence.py         schema-validate-then-compare scorer tests
 ```
 
 ## Required trace shape
 
-The replay engine needs three fields beyond the f3dx metadata schema: `prompt` (str), `system_prompt` (str | None), `output` (str). Today f3dx-rt's JSONL sink emits metadata only — the next f3dx push will add an opt-in `capture_messages=True` flag that includes the full prompt/output. pydantic-ai with logfire emits the equivalent in `gen_ai.input.messages` / `gen_ai.output.messages` attributes; a parser adapter for that shape is on the V0.1 list.
+The replay engine needs three fields beyond the metadata schema: `prompt` (str), `system_prompt` (str | None), `output` (str). Two sources work today out of the box:
+
+- **f3dx**: `f3dx.configure_traces(path, capture_messages=True)` opts in to writing the enriched fields. Off by default for PII-safety. `parse_jsonl(path)` reads them.
+- **pydantic-ai with logfire**: emits OTel spans with `gen_ai.input.messages` + `gen_ai.output.messages` attributes (JSON-encoded `list[ChatMessage]`). `parse_pydantic_ai_jsonl(path)` flattens those into `TraceRow` records the engine consumes the same way.
 
 ## Layout
 
 ```
 src/tracewright/      core library
 tests/                pytest suite + fixtures
+examples/             reference candidate fns for CLI smoke + docs
 pyproject.toml        hatch build, optional [pydantic-ai] extra
+.github/workflows/ci.yml   ubuntu/macos/windows + py3.10/3.12 + ruff + mypy + pytest + CLI smoke
 ```
 
 ## What's not here yet
