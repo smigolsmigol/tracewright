@@ -21,6 +21,24 @@ for result in engine.replay_many(rows):
         print(f"divergence: {result.case.prompt[:60]} -> {result.candidate_output[:60]}")
 ```
 
+Read pydantic-ai logfire-shaped traces with the same engine:
+
+```python
+from tracewright import ReplayEngine, parse_pydantic_ai_jsonl, PydanticEquivalenceScorer
+from pydantic import BaseModel
+
+class Answer(BaseModel):
+    intent: str
+    confidence: float
+
+rows = parse_pydantic_ai_jsonl("logfire_export.jsonl")
+engine = ReplayEngine(
+    candidate_fn=my_candidate,
+    candidate_model="claude-haiku-4",
+    scorers=[PydanticEquivalenceScorer(Answer)],   # validate both sides + compare
+)
+```
+
 ```bash
 tracewright replay traces.jsonl --candidate myapp.replay:my_candidate \
     --candidate-model claude-haiku-4 -v
@@ -61,15 +79,12 @@ pyproject.toml        hatch build, optional [pydantic-ai] extra
 
 ## What's not here yet
 
-- pydantic-ai logfire span adapter (parses gen_ai.* attribute shape)
-- Pydantic-model equivalence scorer (load schema, validate both sides, compare)
 - Embedding-cosine scorer
 - LLM-judge scorer
 - HTML side-by-side report
 - Cost + latency rollups
 - CI fail-the-build mode (`--budget tokens=+5%,latency_p95=+10%`)
 - Tool-call divergence reporting
-- f3dx-side `capture_messages=True` enrichment (next f3dx push)
 
 ## License
 

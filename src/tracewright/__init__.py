@@ -7,11 +7,13 @@ emit becomes the regression suite.
 
 from tracewright._models import ReplayCase, ReplayResult, TraceRow
 from tracewright._parse import parse_jsonl
+from tracewright._pydantic_ai import parse_pydantic_ai_jsonl
 from tracewright._replay import ReplayEngine
-from tracewright._score import ExactMatchScorer, Scorer, ScoreResult
+from tracewright._score import ExactMatchScorer, PydanticEquivalenceScorer, Scorer, ScoreResult
 
 __all__ = [
     "ExactMatchScorer",
+    "PydanticEquivalenceScorer",
     "ReplayCase",
     "ReplayEngine",
     "ReplayResult",
@@ -19,5 +21,6 @@ __all__ = [
     "Scorer",
     "TraceRow",
     "parse_jsonl",
+    "parse_pydantic_ai_jsonl",
 ]
-__version__ = "0.0.1"
+__version__ = "0.0.2"
