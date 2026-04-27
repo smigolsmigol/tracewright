@@ -39,7 +39,7 @@ __all__ = [
     "parse_pydantic_ai_jsonl",
     "to_pydantic_evals_dataset",
 ]
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 
 
 def to_pydantic_evals_dataset(*args: object, **kwargs: object) -> object:
