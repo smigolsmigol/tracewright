@@ -1,0 +1,4 @@
+{"ts": 1777252734.0, "duration_ms": 12.3, "iterations": 1, "tool_calls_executed": 0, "messages_count": 3, "prompt": "what is 2+2", "system_prompt": "you are a calculator", "output": "4", "model": "gpt-4"}
+{"ts": 1777252735.0, "duration_ms": 18.7, "iterations": 1, "tool_calls_executed": 0, "messages_count": 3, "prompt": "what is 3+3", "system_prompt": "you are a calculator", "output": "6", "model": "gpt-4"}
+{"ts": 1777252736.0, "duration_ms": 9.1, "iterations": 1, "tool_calls_executed": 0, "messages_count": 3, "prompt": "what is the capital of France", "system_prompt": "you are a geography assistant", "output": "Paris", "model": "gpt-4"}
+{"ts": 1777252737.0, "duration_ms": 7.2, "iterations": 1, "tool_calls_executed": 0, "messages_count": 3}
