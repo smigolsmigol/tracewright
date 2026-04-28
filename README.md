@@ -107,7 +107,6 @@ pyproject.toml        hatch build, optional [pydantic-ai] extra
 
 ## What's not here yet
 
-- Tool-call divergence reporting
 - Direct ingestion of pydantic-ai `Agent.iter()` runs (today: post-run logfire JSONL only)
 
 For embedding-cosine, LLM-judge, semantic-similarity, or any custom scoring: write a `pydantic_evals.evaluators.Evaluator` subclass and pass it via the `evaluators=` kwarg. Pydantic-evals owns that surface; tracewright deliberately doesn't compete with it.
