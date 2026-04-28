@@ -11,3 +11,19 @@ build/
 *.pyd
 .coverage
 htmlcov/
+
+# secrets / credentials
+.env*
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+*_token
+*_secret
+.npmrc
+.pypirc
+
+# local tooling
+.claude/
+.mcp.json

@@ -1,5 +1,7 @@
 # tracewright
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/smigolsmigol/tracewright/badge)](https://scorecard.dev/viewer/?uri=github.com/smigolsmigol/tracewright)
+
 Trace-replay adapter for [`pydantic-evals`](https://ai.pydantic.dev/evals/). Take a JSONL trace, get a `Dataset` you can run any pydantic-evals evaluator against (`LLMJudge`, `EqualsExpected`, custom embedding-cosine - pydantic-evals owns the eval shape). The artifact your runtime already emits becomes the regression suite.
 
 ```bash
