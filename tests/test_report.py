@@ -87,7 +87,7 @@ def test_report_html_self_contained() -> None:
     # Content: candidate name + at least one PASS marker per case
     assert "echo" in html
     assert html.count("PASS") >= 3
-    # No external resource references — fully self-contained
+    # No external resource references - fully self-contained
     assert "src=" not in html and "href=" not in html
 
 

@@ -10,10 +10,10 @@ from tracewright import ReplayCase
 
 
 def echo(case: ReplayCase) -> str:
-    """Return the baseline verbatim — every case passes exact-match."""
+    """Return the baseline verbatim - every case passes exact-match."""
     return case.baseline_output
 
 
 def constant(case: ReplayCase) -> str:
-    """Return a fixed string — most cases fail exact-match (sanity check)."""
+    """Return a fixed string - most cases fail exact-match (sanity check)."""
     return "fixed-output"

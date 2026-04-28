@@ -1,4 +1,4 @@
-"""tracewright — replay-driven eval over f3dx / pydantic-ai JSONL traces.
+"""tracewright - replay-driven eval over f3dx / pydantic-ai JSONL traces.
 
 Take a recorded trace, hold the input distribution fixed, swap the model
 or prompt, get a per-case diff. The artifact f3dx and pydantic-ai already

@@ -41,7 +41,7 @@ class TraceRow(BaseModel):
     tool_calls_executed: int
     messages_count: int
 
-    # Enriched fields — required for replay; raise on missing in the parser.
+    # Enriched fields - required for replay; raise on missing in the parser.
     prompt: str | None = None
     system_prompt: str | None = None
     output: str | None = None

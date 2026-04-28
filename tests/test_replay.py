@@ -17,12 +17,12 @@ FIXTURE = Path(__file__).parent / "fixtures" / "enriched_trace.jsonl"
 
 
 def perfect_candidate(case: ReplayCase) -> str:
-    """Echoes the baseline — every case passes exact-match."""
+    """Echoes the baseline - every case passes exact-match."""
     return case.baseline_output
 
 
 def wrong_candidate(case: ReplayCase) -> str:
-    """Always returns the wrong answer — every case fails exact-match."""
+    """Always returns the wrong answer - every case fails exact-match."""
     return "WRONG"
 
 

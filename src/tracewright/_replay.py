@@ -51,7 +51,7 @@ class ReplayEngine:
     def _build_case(row: TraceRow) -> ReplayCase:
         if row.prompt is None or row.output is None:
             raise ValueError(
-                "trace row lacks prompt+output — replay needs the enriched "
+                "trace row lacks prompt+output - replay needs the enriched "
                 "f3dx schema (configure with capture_messages=True)"
             )
         return ReplayCase(

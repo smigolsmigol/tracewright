@@ -2,7 +2,7 @@
 
 The Report is the artifact a user looks at after a replay run. It carries
 the per-case ReplayResults, latency stats baseline-vs-candidate, and aggregate
-scorer pass/fail counts. HTML rendering is single-file self-contained — no
+scorer pass/fail counts. HTML rendering is single-file self-contained - no
 external CSS or JS, no build step. Open the file in any browser, get a
 side-by-side diff per case.
 """

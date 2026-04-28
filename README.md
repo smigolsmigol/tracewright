@@ -1,6 +1,6 @@
 # tracewright
 
-Trace-replay adapter for [`pydantic-evals`](https://ai.pydantic.dev/evals/). Take a JSONL trace, get a `Dataset` you can run any pydantic-evals evaluator against (`LLMJudge`, `EqualsExpected`, custom embedding-cosine — pydantic-evals owns the eval shape). The artifact your runtime already emits becomes the regression suite.
+Trace-replay adapter for [`pydantic-evals`](https://ai.pydantic.dev/evals/). Take a JSONL trace, get a `Dataset` you can run any pydantic-evals evaluator against (`LLMJudge`, `EqualsExpected`, custom embedding-cosine - pydantic-evals owns the eval shape). The artifact your runtime already emits becomes the regression suite.
 
 ```bash
 pip install tracewright
@@ -61,7 +61,7 @@ Drop the resulting `report.html` into a CI artifact upload step. The single self
 
 Agent evals are run-once snapshots today (Liu et al. 2024 "AgentBench" arXiv:2308.03688; Yang et al. 2024 "SWE-bench" arXiv:2310.06770). There's no standard way to hold the input distribution fixed and swap the model. Trivedi et al. 2024 ("Toolformer revisited" arXiv:2403.04746) names trace-replay as a missing primitive.
 
-`pydantic-evals` already owns the eval-evaluator-report shape — built-in `LLMJudge`, `EqualsExpected`, `Contains`, `IsInstance`, `MaxDuration`, `Python`, the `Evaluator` Protocol for custom scorers, async retries, markdown reports. Tracewright deliberately does **not** reimplement any of that. It's a 50-line bridge: JSONL traces in, `pydantic_evals.Dataset` out. f3dx is the only Rust runtime emitting Logfire-shaped JSONL natively, and pydantic-ai with logfire enabled writes the same `gen_ai.*` span shape — both feed cleanly through this adapter.
+`pydantic-evals` already owns the eval-evaluator-report shape - built-in `LLMJudge`, `EqualsExpected`, `Contains`, `IsInstance`, `MaxDuration`, `Python`, the `Evaluator` Protocol for custom scorers, async retries, markdown reports. Tracewright deliberately does **not** reimplement any of that. It's a 50-line bridge: JSONL traces in, `pydantic_evals.Dataset` out. f3dx is the only Rust runtime emitting Logfire-shaped JSONL natively, and pydantic-ai with logfire enabled writes the same `gen_ai.*` span shape - both feed cleanly through this adapter.
 
 ## Architecture
 
