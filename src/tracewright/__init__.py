@@ -11,7 +11,7 @@ from tracewright._budget import (
     enforce_budgets,
     parse_budgets,
 )
-from tracewright._models import ReplayCase, ReplayResult, TraceRow
+from tracewright._models import Message, ReplayCase, ReplayResult, TraceRow
 from tracewright._parse import parse_jsonl
 from tracewright._pydantic_ai import parse_pydantic_ai_jsonl
 from tracewright._replay import ReplayEngine
@@ -23,6 +23,7 @@ from tracewright._score import (
     ScoreResult,
     ToolCall,
     ToolCallDivergence,
+    extract_tool_calls,
     tool_call_divergence,
 )
 
@@ -31,6 +32,7 @@ __all__ = [
     "BudgetFailure",
     "ExactMatchScorer",
     "LatencyStats",
+    "Message",
     "PydanticEquivalenceScorer",
     "ReplayCase",
     "ReplayEngine",
@@ -44,13 +46,14 @@ __all__ = [
     "ToolCallDivergence",
     "TraceRow",
     "enforce_budgets",
+    "extract_tool_calls",
     "parse_budgets",
     "parse_jsonl",
     "parse_pydantic_ai_jsonl",
     "tool_call_divergence",
     "to_pydantic_evals_dataset",
 ]
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 
 
 def to_pydantic_evals_dataset(*args: object, **kwargs: object) -> object:

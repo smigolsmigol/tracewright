@@ -9,12 +9,13 @@ churning the engine.
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ValidationError
 
-from tracewright._models import ScoreResult
+from tracewright._models import Message, ScoreResult
 
 __all__ = [
     "ExactMatchScorer",
@@ -23,6 +24,7 @@ __all__ = [
     "Scorer",
     "ToolCall",
     "ToolCallDivergence",
+    "extract_tool_calls",
     "tool_call_divergence",
 ]
 
@@ -109,6 +111,58 @@ class PydanticEquivalenceScorer:
             detail=detail,
             metadata={"schema": self.schema.__name__},
         )
+
+
+def extract_tool_calls(messages: Iterable[Message] | None) -> list[ToolCall]:
+    """Walk a trace's message list and pull every assistant tool call out.
+
+    Handles two shapes the wild emits:
+      OpenAI/Anthropic-compatible: {"tool_calls": [{"function": {"name", "arguments"}}, ...]}
+      Flat shape (anthropic native, f3dx-rt direct): {"tool_calls": [{"name", "arguments"}, ...]}
+
+    `arguments` accepted as JSON-string or dict. JSON-string failures yield
+    an empty-dict argument and the call is still emitted (we'd rather lose
+    arg-fidelity than silently drop the call).
+
+    Returns calls in the order they appear across messages. Pass the result
+    to `tool_call_divergence(baseline, candidate)` for a per-case score.
+    """
+    if not messages:
+        return []
+    out: list[ToolCall] = []
+    for msg in messages:
+        if msg.role != "assistant":
+            continue
+        raw_calls = (msg.model_extra or {}).get("tool_calls")
+        if not raw_calls:
+            continue
+        if not isinstance(raw_calls, list):
+            continue
+        for entry in raw_calls:
+            if not isinstance(entry, dict):
+                continue
+            # Try OpenAI nested shape first, fall back to flat shape.
+            fn = entry.get("function") if isinstance(entry.get("function"), dict) else None
+            name = fn.get("name") if fn else entry.get("name")
+            if not isinstance(name, str) or not name:
+                continue
+            raw_args = fn.get("arguments") if fn else entry.get("arguments")
+            arguments = _coerce_arguments(raw_args)
+            out.append(ToolCall(name=name, arguments=arguments))
+    return out
+
+
+def _coerce_arguments(raw: Any) -> dict[str, Any]:
+    """Accept dict-as-given, json-string-decoded, or fall back to empty."""
+    if isinstance(raw, dict):
+        return raw
+    if isinstance(raw, str):
+        try:
+            parsed = json.loads(raw)
+        except (json.JSONDecodeError, ValueError):
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
+    return {}
 
 
 @dataclass(frozen=True)
