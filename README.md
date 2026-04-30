@@ -95,13 +95,9 @@ The replay engine needs three fields beyond the metadata schema: `prompt` (str),
 - **f3dx**: `f3dx.configure_traces(path, capture_messages=True)` opts in to writing the enriched fields. Off by default for PII-safety. `parse_jsonl(path)` reads them.
 - **pydantic-ai with logfire**: emits OTel spans with `gen_ai.input.messages` + `gen_ai.output.messages` attributes (JSON-encoded `list[ChatMessage]`). `parse_pydantic_ai_jsonl(path)` flattens those into `TraceRow` records the engine consumes the same way.
 
-## Cache-backed real-API replay (`tracewright[cache]`)
+## tracewright[cache]
 
-For replays that hit a real LLM provider, route candidate fns through `f3dx.cache.cached_call` so calibration recordings land in a fixture file committed to the repo. First run records, subsequent runs replay deterministically. Anyone clones + runs the bench gets the same numbers without an API key. CI sets `F3DX_BENCH_OFFLINE=1` so cache miss raises `LookupError` instead of silently hitting the live API.
-
-```bash
-pip install tracewright[cache]
-```
+`pip install tracewright[cache]` pulls in `f3dx.cache.cached_call`. Wrap candidate fns with it so calibration runs land in a fixture file the rest of the team can replay without an API key. CI runs with `F3DX_BENCH_OFFLINE=1` so a cache miss is a test failure rather than a silent live hit.
 
 ```python
 from tracewright import ReplayCase
@@ -110,19 +106,16 @@ from f3dx.cache import Cache, cached_call
 cache = Cache("bench/fixtures/openai.redb")
 
 def cached_openai(case: ReplayCase) -> str:
-    request = {
-        "model": "gpt-4o-mini",
-        "messages": [{"role": "user", "content": case.prompt}],
-        "temperature": 0.0, "max_tokens": 200,
-    }
-    def fetch(req):
-        from openai import OpenAI
-        return OpenAI().chat.completions.create(**req).model_dump()
-    response = cached_call(cache, request, fetch, model="gpt-4o-mini")
+    request = {"model": "gpt-4o-mini",
+               "messages": [{"role": "user", "content": case.prompt}],
+               "temperature": 0.0, "max_tokens": 200}
+    response = cached_call(cache, request,
+        fetch=lambda r: __import__("openai").OpenAI().chat.completions.create(**r).model_dump(),
+        model="gpt-4o-mini")
     return response["choices"][0]["message"]["content"] or ""
 ```
 
-`examples/cached_candidate.py` ships the same pattern as a ready-to-use candidate. The full convention doc lives in [`smigolsmigol/f3dx`](https://github.com/smigolsmigol/f3dx) at `docs/workflows/real_api_benches.md`.
+`examples/cached_candidate.py` is the same thing as a CLI-ready candidate. The full convention is documented in [`smigolsmigol/f3dx`](https://github.com/smigolsmigol/f3dx) at `docs/workflows/real_api_benches.md`.
 
 ## Layout
 
