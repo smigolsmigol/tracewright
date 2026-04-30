@@ -67,7 +67,7 @@ def to_pydantic_evals_dataset(
         name             = case_name_template.format(...) using TraceRow attrs
     """
     rows: Iterable[TraceRow]
-    if isinstance(source, (str, Path)):
+    if isinstance(source, str | Path):
         if pydantic_ai_logfire:
             rows = parse_pydantic_ai_jsonl(source)
         else:

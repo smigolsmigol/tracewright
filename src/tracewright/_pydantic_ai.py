@@ -31,7 +31,7 @@ def parse_pydantic_ai_jsonl(source: str | Path | Iterable[str]) -> Iterator[Trac
     attributes). Each yielded TraceRow has prompt + system_prompt + output +
     model populated, ready to feed into ReplayEngine.
     """
-    if isinstance(source, (str, Path)):
+    if isinstance(source, str | Path):
         with open(source, encoding="utf-8") as f:
             yield from _parse_lines(f)
     else:
@@ -103,7 +103,7 @@ def _otel_value(v: Any) -> Any:
 def _duration_ms(span: dict[str, Any]) -> float:
     end = span.get("end_time_unix_nano")
     start = span.get("start_time_unix_nano")
-    if not isinstance(end, (int, float)) or not isinstance(start, (int, float)):
+    if not isinstance(end, int | float) or not isinstance(start, int | float):
         return 0.0
     return float(end - start) / 1e6
 

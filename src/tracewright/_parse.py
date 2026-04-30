@@ -23,7 +23,7 @@ def parse_jsonl(source: str | Path | Iterable[str]) -> Iterator[TraceRow]:
     strings. Validation errors include the 0-based row index so corrupted
     rows can be located in the source quickly.
     """
-    if isinstance(source, (str, Path)):
+    if isinstance(source, str | Path):
         with open(source, encoding="utf-8") as f:
             yield from _parse_lines(f)
     else:
