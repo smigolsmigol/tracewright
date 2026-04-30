@@ -95,6 +95,35 @@ The replay engine needs three fields beyond the metadata schema: `prompt` (str),
 - **f3dx**: `f3dx.configure_traces(path, capture_messages=True)` opts in to writing the enriched fields. Off by default for PII-safety. `parse_jsonl(path)` reads them.
 - **pydantic-ai with logfire**: emits OTel spans with `gen_ai.input.messages` + `gen_ai.output.messages` attributes (JSON-encoded `list[ChatMessage]`). `parse_pydantic_ai_jsonl(path)` flattens those into `TraceRow` records the engine consumes the same way.
 
+## Cache-backed real-API replay (`tracewright[cache]`)
+
+For replays that hit a real LLM provider, route candidate fns through `f3dx.cache.cached_call` so calibration recordings land in a fixture file committed to the repo. First run records, subsequent runs replay deterministically. Anyone clones + runs the bench gets the same numbers without an API key. CI sets `F3DX_BENCH_OFFLINE=1` so cache miss raises `LookupError` instead of silently hitting the live API.
+
+```bash
+pip install tracewright[cache]
+```
+
+```python
+from tracewright import ReplayCase
+from f3dx.cache import Cache, cached_call
+
+cache = Cache("bench/fixtures/openai.redb")
+
+def cached_openai(case: ReplayCase) -> str:
+    request = {
+        "model": "gpt-4o-mini",
+        "messages": [{"role": "user", "content": case.prompt}],
+        "temperature": 0.0, "max_tokens": 200,
+    }
+    def fetch(req):
+        from openai import OpenAI
+        return OpenAI().chat.completions.create(**req).model_dump()
+    response = cached_call(cache, request, fetch, model="gpt-4o-mini")
+    return response["choices"][0]["message"]["content"] or ""
+```
+
+`examples/cached_candidate.py` ships the same pattern as a ready-to-use candidate. The full convention doc lives in [`smigolsmigol/f3dx`](https://github.com/smigolsmigol/f3dx) at `docs/workflows/real_api_benches.md`.
+
 ## Layout
 
 ```
@@ -116,9 +145,9 @@ For embedding-cosine, LLM-judge, semantic-similarity, or any custom scoring: wri
 The f3d1 ecosystem:
 
 - [`f3dx`](https://github.com/smigolsmigol/f3dx) - Rust runtime your Python imports. Drop-in for openai + anthropic SDKs with native SSE streaming, agent loop with concurrent tool dispatch, OTel emission. `pip install f3dx`.
-- [`f3dx-cache`](https://github.com/smigolsmigol/f3dx-cache) - Content-addressable LLM response cache + replay. redb + RFC 8785 JCS + BLAKE3. `pip install f3dx-cache`.
+- `f3dx.cache` (bundled in `f3dx` since 2026-04-30) - Content-addressable LLM response cache + replay. redb + RFC 8785 JCS + BLAKE3. `pip install f3dx[cache]`. The `tracewright[cache]` extra pulls this in for fixture-backed candidate runs.
 - [`pydantic-cal`](https://github.com/smigolsmigol/pydantic-cal) - Calibration metrics for `pydantic-evals`: ECE, MCE, ACE, Brier, reliability diagrams, Fisher-Rao geometry kernel. `pip install pydantic-cal`.
-- [`f3dx-router`](https://github.com/smigolsmigol/f3dx-router) - In-process Rust router for LLM providers. Hedged-parallel + 429/5xx hot-swap. `pip install f3dx-router`.
+- `f3dx.router` (bundled in `f3dx` since 2026-04-30) - In-process Rust router for LLM providers. Hedged-parallel + 429/5xx hot-swap. `pip install f3dx[router]`.
 - [`f3dx-bench`](https://github.com/smigolsmigol/f3dx-bench) - Public real-prod-traffic LLM benchmark dashboard. CF Worker + R2 + duckdb-wasm. [Live](https://f3dx-bench.pages.dev).
 - [`llmkit`](https://github.com/smigolsmigol/llmkit) - Hosted API gateway with budget enforcement, session tracking, cost dashboards, MCP server. [llmkit.sh](https://llmkit.sh).
 - [`keyguard`](https://github.com/smigolsmigol/keyguard) - Security linter for open source projects. Finds and fixes what others only report.

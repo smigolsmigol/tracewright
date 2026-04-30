@@ -25,9 +25,20 @@ dependencies = [
 [project.optional-dependencies]
 pydantic-ai = ["pydantic-ai>=1.87"]
 pydantic-evals = ["pydantic-evals>=1.87"]
+cache = [
+    # f3dx.cache.cached_call -- the f3d1-wide convention for real-API
+    # benches and integration tests. fixture-backed playback so trace
+    # replay against real LLM providers reproduces deterministically
+    # across machines, no API key required for replay, no throttle
+    # exposure. doc: smigolsmigol/f3dx docs/workflows/real_api_benches.md.
+    # candidate fns in examples/cached_candidate.py demonstrate the
+    # pattern for tracewright replay.
+    "f3dx>=0.0.18",
+]
 dev = [
     "pytest>=8.0",
     "pydantic-ai>=1.87",
+    "f3dx>=0.0.18",
     "ruff>=0.7",
     "mypy>=1.10",
 ]
